@@ -3,7 +3,7 @@ module github.com/wangfeiping/weeder
 go 1.13
 
 require (
-	github.com/chrislusf/seaweedfs v0.0.0-20200210020717-29945fad5132
+	github.com/chrislusf/seaweedfs v0.0.0-20170118173947-8de0027df560
 	github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
