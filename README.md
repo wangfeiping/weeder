@@ -2,4 +2,4 @@
 
 seaweedfs proxy
 
-for seaweedfs 0.74
+for seaweedfs 1.77
