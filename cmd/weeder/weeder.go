@@ -13,41 +13,70 @@ import (
 
 	"github.com/wangfeiping/weeder/log"
 	"github.com/wangfeiping/weeder/util"
+
+	"github.com/spf13/cobra"
 )
 
 func main() {
-	fmt.Println("init")
-	execPath := getExecPath()
-	fmt.Println("path: ", execPath)
 
-	var opt, configOpt string
-
-	if len(os.Args) > 1 {
-		opt = os.Args[1]
-		if strings.EqualFold(opt, "-c") && len(os.Args) > 2 {
-			configOpt = os.Args[2]
-		} else {
-			fmt.Println("help: nohup ./weeder -c ./weeder.conf &")
-			return
-		}
-	}
-	if len(configOpt) < 1 {
-		configOpt = execPath + "weeder.conf"
+	rootCmd := &cobra.Command{
+		Use:   "weeder",
+		Short: ShortDescription,
 	}
 
-	//读取配置文件并解析
-	config, err := util.LoadConfig(configOpt)
-	if "" == config.LogHost {
-		log.InitLogHost(getLocalIP())
-	} else {
-		log.InitLogHost(config.LogHost)
-	}
-	log.DebugS("main", "config: ", configOpt)
-	if err != nil {
-		log.ErrorS("main", "{\"detail\":\"load config error: ", err, "\"}")
-	}
-	if !serv(config) {
+	// Construct Root Command
+	rootCmd.AddCommand(
+		cmdStart(),
+		cmdVersion())
 
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Printf("Failed executing command: %s, exiting...\n", err)
+		os.Exit(1)
+	}
+}
+
+// cmdStart command for start the proxy
+func cmdStart() *cobra.Command {
+	return &cobra.Command{
+		Use:   "start",
+		Short: "start",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			fmt.Println("init")
+			execPath := getExecPath()
+			fmt.Println("path: ", execPath)
+
+			var opt, configOpt string
+
+			if len(os.Args) > 1 {
+				opt = os.Args[1]
+				if strings.EqualFold(opt, "-c") && len(os.Args) > 2 {
+					configOpt = os.Args[2]
+				} else {
+					fmt.Println("help: nohup ./weeder -c ./weeder.conf &")
+					return nil
+				}
+			}
+			if len(configOpt) < 1 {
+				configOpt = execPath + "weeder.conf"
+			}
+
+			//读取配置文件并解析
+			config, err := util.LoadConfig(configOpt)
+			if "" == config.LogHost {
+				log.InitLogHost(getLocalIP())
+			} else {
+				log.InitLogHost(config.LogHost)
+			}
+			log.DebugS("main", "config: ", configOpt)
+			if err != nil {
+				log.ErrorS("main", "{\"detail\":\"load config error: ", err, "\"}")
+				return err
+			}
+			if !serv(config) {
+
+			}
+			return nil
+		},
 	}
 }
 
