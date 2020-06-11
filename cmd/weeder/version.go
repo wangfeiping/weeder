@@ -22,10 +22,10 @@ func cmdVersion() *cobra.Command {
 		Use:   "version",
 		Short: "version",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			s := `Weeder - %s
+			s := `weeder - %s
 version:	        %s
 revision:	        %s
-SeaweedfsSupported:	%s
+seaweedfs supported:	%s
 compile:	        %s
 go version:	        %s
 `
