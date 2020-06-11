@@ -19,8 +19,9 @@ var (
 // cmdVersion command for showing version info
 func cmdVersion() *cobra.Command {
 	return &cobra.Command{
-		Use:   "version",
-		Short: "version",
+		Use:     "version",
+		Short:   "version",
+		Aliases: []string{"v"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			s := `weeder - %s
 version:	        %s

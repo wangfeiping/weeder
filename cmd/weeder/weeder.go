@@ -9,12 +9,17 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 
 	"github.com/wangfeiping/weeder/log"
 	"github.com/wangfeiping/weeder/util"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+)
+
+const (
+	FlagHome   = "home"
+	FlagConfig = "config"
 )
 
 func main() {
@@ -37,7 +42,7 @@ func main() {
 
 // cmdStart command for start the proxy
 func cmdStart() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "start",
 		Short: "start",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -45,20 +50,8 @@ func cmdStart() *cobra.Command {
 			execPath := getExecPath()
 			fmt.Println("path: ", execPath)
 
-			var opt, configOpt string
-
-			if len(os.Args) > 1 {
-				opt = os.Args[1]
-				if strings.EqualFold(opt, "-c") && len(os.Args) > 2 {
-					configOpt = os.Args[2]
-				} else {
-					fmt.Println("help: nohup ./weeder -c ./weeder.conf &")
-					return nil
-				}
-			}
-			if len(configOpt) < 1 {
-				configOpt = execPath + "weeder.conf"
-			}
+			configOpt := viper.GetString(FlagConfig)
+			fmt.Println("config: ", configOpt)
 
 			//读取配置文件并解析
 			config, err := util.LoadConfig(configOpt)
@@ -78,6 +71,14 @@ func cmdStart() *cobra.Command {
 			return nil
 		},
 	}
+
+	cmd.Flags().StringP(FlagConfig, "c", "./weeder.conf", "config file path")
+
+	cmd.PersistentPreRunE = func(_ *cobra.Command, _ []string) error {
+		return viper.BindPFlags(cmd.Flags())
+	}
+
+	return cmd
 }
 
 func getLocalIP() string {
