@@ -10,11 +10,12 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/wangfeiping/weeder/log"
-	"github.com/wangfeiping/weeder/util"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/wangfeiping/log"
+
+	logger "github.com/wangfeiping/weeder/log"
+	"github.com/wangfeiping/weeder/util"
 )
 
 const (
@@ -23,11 +24,22 @@ const (
 )
 
 func main() {
+	defer log.Flush()
+
+	cobra.EnableCommandSorting = false
 
 	rootCmd := &cobra.Command{
 		Use:   "weeder",
 		Short: ShortDescription,
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			viper.BindPFlags(cmd.Flags())
+			log.Config(log.RollingFileConfig())
+			log.Infof("starting at %s", getExecPath())
+			return nil
+		},
 	}
+	rootCmd.PersistentFlags().String(log.FlagLogFile, "./logs/weeder.log", "log file path")
+	rootCmd.PersistentFlags().Int(log.FlagSize, 10, "log size(MB)")
 
 	// Construct Root Command
 	rootCmd.AddCommand(
@@ -56,13 +68,13 @@ func cmdStart() *cobra.Command {
 			//读取配置文件并解析
 			config, err := util.LoadConfig(configOpt)
 			if "" == config.LogHost {
-				log.InitLogHost(getLocalIP())
+				logger.InitLogHost(getLocalIP())
 			} else {
-				log.InitLogHost(config.LogHost)
+				logger.InitLogHost(config.LogHost)
 			}
-			log.DebugS("main", "config: ", configOpt)
+			logger.DebugS("main", "config: ", configOpt)
 			if err != nil {
-				log.ErrorS("main", "{\"detail\":\"load config error: ", err, "\"}")
+				logger.ErrorS("main", "{\"detail\":\"load config error: ", err, "\"}")
 				return err
 			}
 			if !serv(config) {
@@ -73,10 +85,6 @@ func cmdStart() *cobra.Command {
 	}
 
 	cmd.Flags().StringP(FlagConfig, "c", "./weeder.conf", "config file path")
-
-	cmd.PersistentPreRunE = func(_ *cobra.Command, _ []string) error {
-		return viper.BindPFlags(cmd.Flags())
-	}
 
 	return cmd
 }
