@@ -37,6 +37,12 @@ type ApiResult struct {
 	Detail  string      `json:"detail,omitempty"`
 }
 
+// no-lint
+const (
+	FlagLogFile = log.FlagLogFile
+	FlagSize    = log.FlagSize
+)
+
 var logHost = ""
 
 // 日志规范
@@ -44,6 +50,14 @@ var logHost = ""
 // {{appname}}[时间][logLevel][sessionId][traceId][cip:cport][sip:sport][自定义key][userId][线程名|类名|方法名|执行时间] – messageBody
 
 var defaultFormat = `[%{time:2006-01-02 15:04:05.000}][%{level:.4s}][]%{message}`
+
+func Config() {
+	log.Config(log.RollingFileConfig())
+}
+
+func Flush() {
+	log.Flush()
+}
 
 func InitLogHost(host string) {
 	logHost = host

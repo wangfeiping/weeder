@@ -12,9 +12,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/wangfeiping/log"
+	"github.com/wangfeiping/weeder/log"
 
-	logger "github.com/wangfeiping/weeder/log"
 	"github.com/wangfeiping/weeder/util"
 )
 
@@ -33,8 +32,6 @@ func main() {
 		Short: ShortDescription,
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			viper.BindPFlags(cmd.Flags())
-			log.Config(log.RollingFileConfig())
-			log.Infof("starting at %s", getExecPath())
 			return nil
 		},
 	}
@@ -58,25 +55,25 @@ func cmdStart() *cobra.Command {
 		Use:   "start",
 		Short: "start",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println("init")
 			execPath := getExecPath()
-			fmt.Println("path: ", execPath)
-
 			configOpt := viper.GetString(FlagConfig)
-			fmt.Println("config: ", configOpt)
 
 			//读取配置文件并解析
 			config, err := util.LoadConfig(configOpt)
-			if "" == config.LogHost {
-				logger.InitLogHost(getLocalIP())
-			} else {
-				logger.InitLogHost(config.LogHost)
-			}
-			logger.DebugS("main", "config: ", configOpt)
 			if err != nil {
-				logger.ErrorS("main", "{\"detail\":\"load config error: ", err, "\"}")
 				return err
 			}
+
+			if "" == config.LogHost {
+				log.InitLogHost(getLocalIP())
+			} else {
+				log.InitLogHost(config.LogHost)
+			}
+
+			log.Config()
+			log.DebugS("main", "starting at ", execPath)
+			log.DebugS("main", "config: ", configOpt)
+
 			if !serv(config) {
 
 			}
